@@ -2,13 +2,40 @@ from fastapi import FastAPI,Request
 from pydantic import BaseModel
 from typing import Any
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from contextlib import asynccontextmanager
+from datetime import datetime
+
+import psycopg2
+
+
+# scheduler = AsyncIOScheduler()
+
+# def my_cron_job():
+#     print("Cron job executed:", datetime.now())
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     scheduler.start() # Start scheduler
+#     scheduler.add_job(  # Add cron job (every 5 minutes)
+#         my_cron_job,
+#         trigger="cron",
+#         second ="*/10"
+#     )
+#     print("Scheduler started")
+#     yield
+#     print("Shutting down scheduler")
+#     scheduler.shutdown()
+
+# app = FastAPI(lifespan=lifespan)
+
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
     return {"Hello":"sexy"}
-
-
 
 
 # Request body model
@@ -32,7 +59,7 @@ class DataDogAlert(BaseModel):
 ##------------------------ POST endpoints(alerts Monitor (Webhooks))----------------------------------##
 @app.post("/Datadog_Monitor")
 async def create_item(alert: DataDogAlert):
-    print(alert.event)
+    print(alert.event['error']['message'])
     return {
         "message": "Item created successfully",
         "data": alert
@@ -53,6 +80,7 @@ async def create_item(alert: DataDogAlert):
 #         "message": "Item created successfully",
 #         "data": alert
 #     }
+
 
 ##------------------------ Helper Functions----------------------------------##
 def create_ticket():

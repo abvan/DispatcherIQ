@@ -1,1 +1,6 @@
 fastapi[standard]
+fastapi_utils
+apscheduler
+psycopg2-binary
+langchain
+langchain_groq
