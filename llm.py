@@ -67,3 +67,7 @@ def summarize_alerts(alert_message : str) -> str:
     chain = prompt | llm
     response = chain.invoke({"alert_text": alert_message})
     return response.content
+
+alert = "Copy activity 'CopyCustomersToSQL' failed due to SQL pool timeout. The dedicated SQL pool did not respond within the configured timeout."
+summarisation = summarize_alerts(alert)
+print(summarisation)

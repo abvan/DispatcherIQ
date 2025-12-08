@@ -4,3 +4,4 @@ apscheduler
 psycopg2-binary
 langchain
 langchain_groq
+asyncpg
