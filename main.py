@@ -56,6 +56,11 @@ class DataDogAlert(BaseModel):
     tags : Any
     event : Any
 
+class EmailAlert(BaseModel):
+    Subject : str
+    Body : str
+
+
 ##------------------------ POST endpoints(alerts Monitor (Webhooks))----------------------------------##
 @app.post("/Datadog_Monitor")
 async def create_item(alert: DataDogAlert):
@@ -73,13 +78,12 @@ async def create_item(alert: DataDogAlert):
 #         "data": alert
 #     }
 
-# @app.post("/Email_Monitor")
-# async def create_item(alert: DataDogAlert):
-#     print(alert.event)
-#     return {
-#         "message": "Item created successfully",
-#         "data": alert
-#     }
+@app.post("/Email_Monitor")
+async def create_item(alert: EmailAlert):
+    return {
+        "message": "Email Received successfully",
+        "data": alert
+    }
 
 
 ##------------------------ Helper Functions----------------------------------##
