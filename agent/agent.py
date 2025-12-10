@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_groq import ChatGroq
+from tools import classify_issue,get_engineer_with_lowest_load,create_ticket,send_teams_message
+from state import AgentState
 
 load_dotenv()
 
@@ -12,25 +14,36 @@ model = ChatGroq(
         temperature=0.2
     )
 
-@tool
-def search(query: str) -> str:
-    """Search for information."""
-    return f"Results for: {query}"
-
-@tool
-def get_weather(location: str) -> str:
-    """Get weather information for a location."""
-    return f"Weather in {location}: Sunny, 72°F"
+# Tool definitions
+tools = [
+    classify_issue,
+    get_engineer_with_lowest_load,
+    create_ticket,
+    send_teams_message,
+]
 
 agent = create_agent(
                 model, 
-                tools=[search, get_weather],
-                system_prompt="You are a helpful assistant. Be concise and accurate."
+                tools=tools,
+                system_prompt="""
+                    You are an autonomous operations agent.
+                    Your job is to fully resolve incoming alerts or email requests.
+
+                    Available tools:
+                    - classify_issue
+                    - get_engineer
+                    - create_ticket
+                    - notify
+                    
+                    Use multiple steps if needed.
+                    If tool output indicates failure, try a different strategy.
+                    Stop only when task is 100 percent completed.
+                """
                 )
 
 # The system prompt will be set dynamically based on context
 result = agent.invoke(
-    {"messages": [{"role": "user", "content": "What's the weather in San Francisco?"}]}
+    {"messages": [{"role": "user", "content": "Create a New table from SAP Table named CDPOS in Ceramics CDP"}]}
 )
 
 print(result)
