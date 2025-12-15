@@ -2,11 +2,12 @@ import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
 
 from langchain_core.messages import HumanMessage,SystemMessage
 from langchain.tools import tool
-
+from pydantic import BaseModel, Field
+from typing import Optional, List
 
 load_dotenv()
 
@@ -65,13 +66,110 @@ def summarize_alerts(alert_message : str) -> str:
 # summarisation = summarize_alerts(alert)
 # print(summarisation)
 
-@tool
-def classify_issue():
-    """Classifies the issue based on the incoming text."""
-    # This Function will understand the intention and purpose of the mail sent by the user and determine whether its a standard task
-    # Or Ask for more clarification
+# This Function will understand the intention and purpose of the mail sent by the user and determine whether its a standard task
+# Or Ask for more clarification    
+#@tool
+def classify_email(email_subject: str,
+                   email_body: str,
+                   thread_id: Optional[str] = None,
+                   mail_chain_depth: Optional[int] = None
+                   ) -> dict :
+    #"""Classifies an email for Operations dispatching."""
+    
+    llm = ChatGroq(
+        model_name="openai/gpt-oss-120b",   # or "llama3-70b-8192"
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        temperature=0.2
+    )
 
-    pass
+    prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+        You are an Operations Dispatcher AI.
+
+        Your job is to classify incoming Outlook emails for an enterprise operations team.
+
+        Classify the email into ONE of the following categories ONLY:
+        - FOLLOW_UP
+        - STANDARD_REQUEST
+        - INCIDENT_ANOMALY
+        - CHANGE_REQUEST
+        - ACCESS_REQUEST
+        - QUESTION
+        - APPROVAL_RESPONSE
+        - AUTOMATED_NOTIFICATION
+        - UNKNOWN
+
+        Rules:
+        - FOLLOW_UP if it references a previous email, ticket, or asks for status.
+        - INCIDENT_ANOMALY if system is broken, degraded, failing, or data is incorrect.
+        - CHANGE_REQUEST if it proposes a planned change or deployment.
+        - ACCESS_REQUEST if it asks for permissions, roles, VPN, DB access.
+        - AUTOMATED_NOTIFICATION if system-generated (alerts, monitoring).
+        - UNKNOWN if unclear.
+        - For any type of classification except UNKNOWN, you must consider creating a ticket.
+
+        Return STRICTLY valid JSON.
+        Do NOT add explanations.
+        If unsure, lower confidence and use UNKNOWN.
+
+        {format_instructions}
+                """
+            ),
+            (
+                "human",
+                """
+                    Email Subject:
+                    {subject}
+
+                    Email Body:
+                    {body}
+
+                    Thread ID:
+                    {thread_id}
+                """
+            )
+        ])
+
+    class Classification(BaseModel):
+        category: str = Field(
+            description="One of FOLLOW_UP, STANDARD_REQUEST, INCIDENT_ANOMALY, CHANGE_REQUEST, ACCESS_REQUEST, QUESTION, APPROVAL_RESPONSE, AUTOMATED_NOTIFICATION, UNKNOWN"
+        )
+        sub_category: Optional[str] = Field(
+            default=None,
+            description="Optional finer classification"
+        )
+        severity: Optional[str] = Field(
+            default=None,
+            description="P1, P2, P3 if incident"
+        )
+        confidence: float = Field(
+            description="Confidence between 0 and 1"
+        )
+    class ThreadContext(BaseModel):
+        is_reply: bool
+        previous_ticket_id: Optional[str] = None
+        mail_chain_depth: Optional[int] = None
+    class ClassifyEmailOutput(BaseModel):
+        status: str
+        classification: Classification
+        thread_context: ThreadContext
+        signals: List[str]
+        recommended_next_action: str
+
+    parser = PydanticOutputParser(pydantic_object=ClassifyEmailOutput)
+    
+    chain = (prompt | llm | parser)
+    
+    ClassifyEmailOutput = chain.invoke({
+            "subject": email_subject,
+            "body": email_body,
+            "thread_id": thread_id or "None",
+            "format_instructions": parser.get_format_instructions()
+        })
+
+    return ClassifyEmailOutput.model_dump()
 
 @tool
 def create_ticket():

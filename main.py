@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from agent.tools import classify_email
 import psycopg2
 
 
@@ -80,9 +81,12 @@ async def create_item(alert: DataDogAlert):
 
 @app.post("/Email_Monitor")
 async def create_item(alert: EmailAlert):
+    print(alert.Subject)
+    print(alert.Body)
+    email_action = classify_email(email_subject = alert.Subject,email_body=alert.Body)
     return {
         "message": "Email Received successfully",
-        "data": alert
+        "data": email_action
     }
 
 

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_groq import ChatGroq
-from tools import classify_issue,get_engineer_with_lowest_load,create_ticket,send_teams_message
+from tools import classify_email,get_engineer_with_lowest_load,create_ticket,send_teams_message
 from state import AgentState
 
 load_dotenv()
@@ -16,10 +16,7 @@ model = ChatGroq(
 
 # Tool definitions
 tools = [
-    classify_issue,
-    get_engineer_with_lowest_load,
-    create_ticket,
-    send_teams_message,
+    classify_email
 ]
 
 agent = create_agent(
@@ -30,10 +27,8 @@ agent = create_agent(
                     Your job is to fully resolve incoming alerts or email requests.
 
                     Available tools:
-                    - classify_issue
-                    - get_engineer
-                    - create_ticket
-                    - notify
+                    - classify_email
+                    
                     
                     Use multiple steps if needed.
                     If tool output indicates failure, try a different strategy.
