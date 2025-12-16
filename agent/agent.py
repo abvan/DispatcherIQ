@@ -16,7 +16,8 @@ model = ChatGroq(
 
 # Tool definitions
 tools = [
-    classify_email
+    classify_email,
+    create_ticket
 ]
 
 agent = create_agent(
@@ -28,7 +29,8 @@ agent = create_agent(
 
                     Available tools:
                     - classify_email
-                    
+                    - create_ticket
+                    - notify
                     
                     Use multiple steps if needed.
                     If tool output indicates failure, try a different strategy.
