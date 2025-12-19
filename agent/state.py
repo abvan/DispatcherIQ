@@ -1,31 +1,19 @@
 from pydantic import BaseModel
 from typing import TypedDict, Optional, List, Dict, Any
+from parsing_models import Classification
 
-class AgentState(BaseModel):
-    ticket_id: str | None = None
-    raw_input: dict | None = None
-    summarised_input: str | None = None
-    category: str | None = None
-    sub_catergory : str | None = None
-    severity : int | None = None
-    engineer : dict | None = None
-    
-    notification_status: str | None = None
+class input_structure(BaseModel):
+    Title : str
+    Body : str
 
-
-class EmailAgentState(TypedDict, total=False):
-    # Raw input
-    email_subject: str
-    email_body: str
-    thread_id: Optional[str]
-    mail_chain_depth: Optional[int]
-
-    # Classification results
-    classification: Dict[str, Any]
-    thread_context: Dict[str, Any]
-    signals: List[str]
-    recommended_next_action: str
-
-    # Execution metadata
-    status: str
-    errors: List[str]
+class DispatcherState(TypedDict):
+    ticket_id: Optional[str]
+    raw_input: input_structure
+    source: Optional[str] # email | alert(datadog,sifflet etc) | stakeholder
+    classification: Classification 
+    severity: Optional[str]
+    assigned_to: Optional[str]
+    next_action: Optional[str]
+    extracted_entities: Optional[dict]
+    response_message: Optional[str]
+    status: str # Aknowledged | Ticket Created | Engineer Assigned | InProgress | Completed |

@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from agent.tools import classify_email
+from agent.workflow_tools import intent_classification
 import psycopg2
 
 
@@ -83,7 +84,7 @@ async def create_item(alert: DataDogAlert):
 async def create_item(alert: EmailAlert):
     print(alert.Subject)
     print(alert.Body)
-    email_action = classify_email(email_subject = alert.Subject,email_body=alert.Body)
+    email_action = intent_classification(email_subject = alert.Subject,email_body=alert.Body)
     return {
         "message": "Email Received successfully",
         "data": email_action
