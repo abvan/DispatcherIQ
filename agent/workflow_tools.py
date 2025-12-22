@@ -20,36 +20,46 @@ ChatGroq_Model = ChatGroq(
     temperature=0.2
 )
 
-def intent_classification(email_subject: str,
+
+
+
+def email_intent_classification(email_subject: str,
                    email_body: str,
                    thread_id: Optional[str] = None,
                    prompt = Email_Classification_prompt,
                    outputparser = ClassifyEmailOutput,
                    llm = ChatGroq_Model
-                   ) -> dict :
-    
-    #"""Classifies an email for Operations dispatching."""
-    
-    parser = PydanticOutputParser(pydantic_object=outputparser)
-    
+                   ) -> dict :  
+    #"""Classifies an email for Operations dispatching."""    
+    parser = PydanticOutputParser(pydantic_object=outputparser)    
     chain = (prompt | llm | parser)
-    
     ClassifyEmailOutput = chain.invoke({
             "subject": email_subject,
             "body": email_body,
             "thread_id": thread_id or "None",
             "format_instructions": parser.get_format_instructions()
         })
-
     #UPDATE THE STATE OBJECT
     #..........
-
     #PERSIST THE STATE IN DATEBASE
     #...........
-    
     return ClassifyEmailOutput.model_dump()
 
 
+def classify(DispatcherState):
+    if DispatcherState['source'] == 'Email' :
+        classification = email_intent_classification(DispatcherState['Raw_input'])    
+        if classification.model_fields["category"].description == 'INCIDENT_ANOMALY':
+            return "INCIDENT"
+        else :
+            return classification.model_fields["category"].description   
+    elif DispatcherState['source'] == 'DataDog_Alert' :
+        return "INCIDENT"
+    elif DispatcherState['source'] == 'Sifflet_Alert' :
+        return "INCIDENT"
+    else :
+        return "Cannot Classify"
+    
 def Summarize_Alerts(alert_raw_input: str,
                     state : DispatcherState,
                     prompt = [Extract_Alert_Information_Prompt],
@@ -75,9 +85,39 @@ def Summarize_Alerts(alert_raw_input: str,
             pass
     pass
 
+def Summarize_Emails(alert_raw_input: str,
+                    state : DispatcherState,
+                    prompt = [Extract_Alert_Information_Prompt],
+                    outputparser = ClassifyEmailOutput,
+                    llm = ChatGroq_Model
+                   ) -> dict :
+    pass
 
 def get_engineer_with_lowest_load():
     pass
 
 def create_ticket():
+    pass
+
+def route_by_classification(state: DispatcherState) -> str:
+    
+    classification = state.get("classification")
+
+    if classification == "INCIDENT":
+        return "INCIDENT"
+
+    elif classification == "CHANGE":
+        return "CHANGE"
+
+    elif classification == "QUERY":
+        return "QUERY"
+
+    else:
+        return "DEFAULT"
+    
+
+def auto_response():
+    pass
+
+def send_email() :
     pass

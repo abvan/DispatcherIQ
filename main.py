@@ -7,8 +7,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from agent.tools import classify_email
-from agent.workflow_tools import intent_classification
+# from agent.tools import classify_email
+# from agent.workflow_tools import intent_classification
 import psycopg2
 
 
@@ -82,12 +82,27 @@ async def create_item(alert: DataDogAlert):
 
 @app.post("/Email_Monitor")
 async def create_item(alert: EmailAlert):
-    print(alert.Subject)
-    print(alert.Body)
-    email_action = intent_classification(email_subject = alert.Subject,email_body=alert.Body)
+    
+    initial_state = {
+        "raw_input": {
+            "Title": alert.Subject,
+            "Body": alert.Body
+        },
+        "source": "Email",
+        "classification": None,
+        "severity": None,
+        "assigned_to": None,
+        "next_action":None,
+        "extracted_entities" : None,
+        "status": "received"
+    }
+
+    return dispatcher_graph.invoke(initial_state)
+
+    #email_action = intent_classification(email_subject = alert.Subject,email_body=alert.Body)
     return {
         "message": "Email Received successfully",
-        "data": email_action
+        "data": initial_state
     }
 
 
