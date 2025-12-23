@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from agent.workflow import dispatcher_graph
 # from agent.tools import classify_email
 # from agent.workflow_tools import intent_classification
 import psycopg2

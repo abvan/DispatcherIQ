@@ -8,9 +8,9 @@ from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-from node_prompts import Email_Classification_prompt,Extract_Alert_Information_Prompt
-from parsing_models import ClassifyEmailOutput
-from state import DispatcherState
+from .node_prompts import Email_Classification_prompt,Extract_Alert_Information_Prompt
+from .parsing_models import ClassifyEmailOutput,Classification
+from .state import DispatcherState
 
 load_dotenv()
 
@@ -27,7 +27,7 @@ def email_intent_classification(email_subject: str,
                    email_body: str,
                    thread_id: Optional[str] = None,
                    prompt = Email_Classification_prompt,
-                   outputparser = ClassifyEmailOutput,
+                   outputparser = Classification,
                    llm = ChatGroq_Model
                    ) -> dict :  
     #"""Classifies an email for Operations dispatching."""    
@@ -39,27 +39,27 @@ def email_intent_classification(email_subject: str,
             "thread_id": thread_id or "None",
             "format_instructions": parser.get_format_instructions()
         })
-    #UPDATE THE STATE OBJECT
-    #..........
-    #PERSIST THE STATE IN DATEBASE
-    #...........
     return ClassifyEmailOutput.model_dump()
 
 
 def classify(DispatcherState):
     if DispatcherState['source'] == 'Email' :
-        classification = email_intent_classification(DispatcherState['Raw_input'])    
-        if classification.model_fields["category"].description == 'INCIDENT_ANOMALY':
-            return "INCIDENT"
-        else :
-            return classification.model_fields["category"].description   
+        DispatcherState['classification'] = email_intent_classification(email_subject = DispatcherState['raw_input']['Title'],
+                                                                        email_body=DispatcherState['raw_input']['Body']
+                                                                        )    
+        if DispatcherState['classification']["category"] == 'INCIDENT_ANOMALY':
+            DispatcherState['classification']["category"] = 'INCIDENT'
     elif DispatcherState['source'] == 'DataDog_Alert' :
-        return "INCIDENT"
+        DispatcherState['classification']["category"] = 'INCIDENT'
     elif DispatcherState['source'] == 'Sifflet_Alert' :
-        return "INCIDENT"
+        DispatcherState['classification']["category"] = 'INCIDENT'
     else :
-        return "Cannot Classify"
-    
+        DispatcherState['classification']["category"] = 'INCIDENT' 
+    return DispatcherState
+
+def summarize(DispatcherState):
+    pass
+
 def Summarize_Alerts(alert_raw_input: str,
                     state : DispatcherState,
                     prompt = [Extract_Alert_Information_Prompt],
@@ -99,8 +99,12 @@ def get_engineer_with_lowest_load():
 def create_ticket():
     pass
 
+
 def route_by_classification(state: DispatcherState) -> str:
     
+    ##If Email(1st Email) and Incident . -- > Summarize_Email
+    ##If Email -> QUERY or Change . -- > Summarize_Email(different parameters)
+    ##If Datadog or Sifflet Incident --> Summarize Incident
     classification = state.get("classification")
 
     if classification == "INCIDENT":
