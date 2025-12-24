@@ -17,7 +17,8 @@ class DispatcherState(TypedDict):
     extracted_entities: Optional[dict]
     response_message: Optional[str]
     status: str # Aknowledged | Ticket Created | Engineer Assigned | InProgress | Completed |
-
+    lastUpdateTime: str
+    
 # raw_input = input_structure(
 #     Title="Issues in PowerBI report",
 #     Body="Hello operations team , the gross sales margin in the consolidated sales report are not correct when i compare it with the SAP system, could you please check on this ASAP. This is quiet urgent since the Director needs the sales figure in this closing period."

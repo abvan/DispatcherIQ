@@ -42,23 +42,22 @@ def email_intent_classification(email_subject: str,
     return ClassifyEmailOutput.model_dump()
 
 
-def classify(DispatcherState):
-    if DispatcherState['source'] == 'Email' :
-        DispatcherState['classification'] = email_intent_classification(email_subject = DispatcherState['raw_input']['Title'],
-                                                                        email_body=DispatcherState['raw_input']['Body']
+def classify(state: DispatcherState):
+    if state['source'] == 'Email' :
+        state['classification'] = email_intent_classification(email_subject = state['raw_input']['Title'],
+                                                                        email_body = state['raw_input']['Body']
                                                                         )    
-        if DispatcherState['classification']["category"] == 'INCIDENT_ANOMALY':
-            DispatcherState['classification']["category"] = 'INCIDENT'
-    elif DispatcherState['source'] == 'DataDog_Alert' :
-        DispatcherState['classification']["category"] = 'INCIDENT'
-    elif DispatcherState['source'] == 'Sifflet_Alert' :
-        DispatcherState['classification']["category"] = 'INCIDENT'
+        if state['classification']['category'] == 'INCIDENT_ANOMALY':
+            state['classification']['category'] = 'INCIDENT'
+    elif state['source'] == 'DataDog_Alert' :
+        state['classification']['category'] = 'INCIDENT'
+    elif state['source'] == 'Sifflet_Alert' :
+        state['classification']['category'] = 'INCIDENT'
     else :
-        DispatcherState['classification']["category"] = 'INCIDENT' 
-    return DispatcherState
+        state['classification']['category'] = 'INCIDENT' 
+    print(state)
+    return state
 
-def summarize(DispatcherState):
-    pass
 
 def Summarize_Alerts(alert_raw_input: str,
                     state : DispatcherState,
@@ -93,32 +92,39 @@ def Summarize_Emails(alert_raw_input: str,
                    ) -> dict :
     pass
 
+def summarize(state: DispatcherState):
+    if state['source'] == 'Email':
+        abc = Summarize_Emails()
+        #UpdateState
+
+    if state['source'] in ('DataDog','Sifflet'):
+        abc = Summarize_Alerts(state['raw_input'])
+        #UpdateState
+
+    return state
+
+
+
+def route_by_classification(state: DispatcherState) -> str: 
+    if state['classification']['category'] in ('INCIDENT'):
+        return "INCIDENT"
+    if state['classification']['category'] in ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST'):
+        return "VALIDATE"
+    elif state['classification']['category'] in ('QUERY','FOLLOW_UP','QUESTION'):
+        return "RESPONSE_USER"
+    else:
+        return "DEFAULT"
+    
+def validate_requirements():
+    ##If we have a ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST') : This function should check all the required data for each 
+    # and ask the user to provide the information if they are insufficient
+    pass
+
 def get_engineer_with_lowest_load():
     pass
 
 def create_ticket():
     pass
-
-
-def route_by_classification(state: DispatcherState) -> str:
-    
-    ##If Email(1st Email) and Incident . -- > Summarize_Email
-    ##If Email -> QUERY or Change . -- > Summarize_Email(different parameters)
-    ##If Datadog or Sifflet Incident --> Summarize Incident
-    classification = state.get("classification")
-
-    if classification == "INCIDENT":
-        return "INCIDENT"
-
-    elif classification == "CHANGE":
-        return "CHANGE"
-
-    elif classification == "QUERY":
-        return "QUERY"
-
-    else:
-        return "DEFAULT"
-    
 
 def auto_response():
     pass

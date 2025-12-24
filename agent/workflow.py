@@ -2,15 +2,16 @@ from typing import TypedDict, List, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 
-from .workflow_tools import classify,summarize,get_engineer_with_lowest_load,create_ticket,route_by_classification,auto_response,send_email
+from .workflow_tools import classify,summarize,validate_requirements,get_engineer_with_lowest_load,create_ticket,route_by_classification,auto_response,send_email
 from .state import DispatcherState
-from IPython.display import Image, display
+#from IPython.display import Image, display
 
 
 builder = StateGraph(DispatcherState)
 builder.add_node("classify", classify)
 builder.add_node("summarize", summarize)
-# builder.add_node("create_ticket", create_ticket)
+builder.add_node("validate", validate_requirements)
+builder.add_node("create_ticket", create_ticket)
 # builder.add_node("assign", get_engineer_with_lowest_load)
 builder.add_node("generate_response", auto_response)
 # builder.add_node("send_email", send_email)
@@ -24,10 +25,11 @@ builder.add_conditional_edges(
     route_by_classification,
     {
         "INCIDENT": "summarize",
-        "CHANGE": "summarize",
-        "QUERY": "generate_response"
+        "VALIDATE": "validate",
+        "RESPONSE_USER": "generate_response"
     }
 )
+builder.add_edge("summarize", "create_ticket")
 # builder.add_edge("generate_response", "send_email")
 # builder.add_edge("Summarize_Emails", "create_ticket")
 # builder.add_edge("Summarize_Incident", "create_ticket")
