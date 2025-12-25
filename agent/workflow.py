@@ -29,7 +29,7 @@ builder.add_conditional_edges(
         "RESPONSE_USER": "generate_response"
     }
 )
-builder.add_edge("summarize", "create_ticket")
+#builder.add_edge("summarize", "create_ticket")
 # builder.add_edge("generate_response", "send_email")
 # builder.add_edge("Summarize_Emails", "create_ticket")
 # builder.add_edge("Summarize_Incident", "create_ticket")
@@ -38,6 +38,6 @@ builder.add_edge("summarize", "create_ticket")
 
 dispatcher_graph = builder.compile()
 
-mermaid = dispatcher_graph.get_graph().draw_mermaid()
-print(mermaid)
+# mermaid = dispatcher_graph.get_graph().draw_mermaid()
+# print(mermaid)
 #display(Image(dispatcher_graph.get_graph().draw_png()))

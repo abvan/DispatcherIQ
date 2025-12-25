@@ -67,11 +67,31 @@ class EmailAlert(BaseModel):
 ##------------------------ POST endpoints(alerts Monitor (Webhooks))----------------------------------##
 @app.post("/Datadog_Monitor")
 async def create_item(alert: DataDogAlert):
-    print(alert.event['error']['message'])
-    return {
-        "message": "Item created successfully",
-        "data": alert
+    
+    initial_state = {
+        "raw_input": {
+            "Title": alert.event['error']['message'],
+            "Body": alert.event['error']['details']
+        },
+        "source": "DataDog",
+        "classification": {
+                           "category":"",
+                           "sub_category":"",
+                           "severity":"",
+                           "confidence":""
+                           },
+        "severity": "",
+        "assigned_to": "",
+        "next_action": "",
+        "extracted_entities" : "",
+        "status": "received"
     }
+    
+    return dispatcher_graph.invoke(initial_state)
+    # return {
+    #     "message": "Item created successfully",
+    #     "data": alert.event
+    # }
 
 # @app.post("/Sifflet_Monitor")
 # async def create_item(alert: DataDogAlert):

@@ -27,3 +27,17 @@ class ClassifyEmailOutput(BaseModel):
     classification: Classification
     thread_context: ThreadContext
     recommended_next_action: str
+
+class AlertIncidentSummary(BaseModel):
+    summary: str = Field(
+        description="Concise summary of the alert and its impact (max 50 words)."
+    )
+    root_cause_explanation: str = Field(
+        description="Reasoned explanation of why the failure occurred (max 50 words)."
+    )
+    possible_solutions: List[str] = Field(
+        description="Actionable possible solutions or fixes (each item concise, overall max 50 words)."
+    )
+    next_recommended_actions: List[str] = Field(
+        description="Immediate next steps for support engineers (each item concise, overall max 50 words)."
+    )

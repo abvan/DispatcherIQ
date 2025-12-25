@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
@@ -8,8 +9,8 @@ from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-from .node_prompts import Email_Classification_prompt,Extract_Alert_Information_Prompt
-from .parsing_models import ClassifyEmailOutput,Classification
+from .node_prompts import Email_Classification_prompt,Summarize_Alert_Incident
+from .parsing_models import ClassifyEmailOutput,Classification,AlertIncidentSummary
 from .state import DispatcherState
 
 load_dotenv()
@@ -19,8 +20,6 @@ ChatGroq_Model = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY"),
     temperature=0.2
 )
-
-
 
 
 def email_intent_classification(email_subject: str,
@@ -49,59 +48,49 @@ def classify(state: DispatcherState):
                                                                         )    
         if state['classification']['category'] == 'INCIDENT_ANOMALY':
             state['classification']['category'] = 'INCIDENT'
-    elif state['source'] == 'DataDog_Alert' :
+    elif state['source'] == 'DataDog' :
         state['classification']['category'] = 'INCIDENT'
-    elif state['source'] == 'Sifflet_Alert' :
+    elif state['source'] == 'Sifflet' :
         state['classification']['category'] = 'INCIDENT'
     else :
         state['classification']['category'] = 'INCIDENT' 
-    print(state)
     return state
 
 
-def Summarize_Alerts(alert_raw_input: str,
-                    state : DispatcherState,
-                    prompt = [Extract_Alert_Information_Prompt],
-                    outputparser = ClassifyEmailOutput,
+def Summarize_Alerts(state : DispatcherState,
+                    prompt = [Summarize_Alert_Incident],
+                    outputparser = AlertIncidentSummary,
                     llm = ChatGroq_Model
                    ) -> dict :
-    
-    if state['next_action'] == 'Create Ticket' :
-        if state['source'] == 'DataDog_Alert' :
-            parser = PydanticOutputParser(pydantic_object=outputparser) #Check Output Parser for this Alert.
-            chain = (prompt[0] | llm | parser)
-            response = chain.invoke({{"alert_text": alert_raw_input}})
-        
-        elif state['source'] == "Email" :
-            parser = PydanticOutputParser(pydantic_object=outputparser) #Check Output Parser for this Alert.
-            chain = (prompt[0] | llm | parser)
-            response = chain.invoke({{"alert_text": alert_raw_input}})
-        
-        elif state['source'] == "Sifflet_Alert" :
-            pass
-        
-        else :
-            pass
-    pass
 
-def Summarize_Emails(alert_raw_input: str,
-                    state : DispatcherState,
-                    prompt = [Extract_Alert_Information_Prompt],
-                    outputparser = ClassifyEmailOutput,
-                    llm = ChatGroq_Model
-                   ) -> dict :
+    if state['source'] == 'DataDog' :
+        parser = PydanticOutputParser(pydantic_object=outputparser) #Check Output Parser for this Alert.
+        chain = (prompt[0] | llm | parser)
+        response = chain.invoke({"alert_text": (state['raw_input']['Title'] + state['raw_input']['Body']),
+                                 "format_instructions": parser.get_format_instructions()})
+        state['summary'] = response.model_dump_json(indent=2)
+        return state
+    elif state['source'] == "Sifflet_Alert" :
+        pass
+
+def Summarize_Emails(state : DispatcherState, 
+                     prompt = Summarize_Alert_Incident, 
+                     outputparser = ClassifyEmailOutput,
+                     llm = ChatGroq_Model) -> dict :
+    
     pass
 
 def summarize(state: DispatcherState):
+    print("Summarizing Incident......")
     if state['source'] == 'Email':
         abc = Summarize_Emails()
         #UpdateState
 
     if state['source'] in ('DataDog','Sifflet'):
-        abc = Summarize_Alerts(state['raw_input'])
+        abc = Summarize_Alerts(state)
         #UpdateState
 
-    return state
+    return abc
 
 
 

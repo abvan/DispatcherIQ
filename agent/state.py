@@ -13,6 +13,7 @@ class DispatcherState(TypedDict):
     classification: Classification 
     severity: Optional[str]
     assigned_to: Optional[str]
+    summary: Optional[str]
     next_action: Optional[str]
     extracted_entities: Optional[dict]
     response_message: Optional[str]

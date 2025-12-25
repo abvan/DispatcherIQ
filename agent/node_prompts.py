@@ -51,7 +51,7 @@ Email_Classification_prompt = ChatPromptTemplate.from_messages([
         ])
 
 
-Extract_Alert_Information_Prompt = ChatPromptTemplate.from_messages([
+Summarize_Alert_Incident = ChatPromptTemplate.from_messages([
         (
             "system",
             """
@@ -59,7 +59,7 @@ Extract_Alert_Information_Prompt = ChatPromptTemplate.from_messages([
                 Your job is to analyze FAILURE ALERTS coming from pipelines, cloud services, databases,
                 integration systems, and monitoring tools.
 
-                Your responsibilities:
+                Your responsibilities :
                 1. Read and understand the failure alert in detail.
                 2. Extract the key issue and summarize it in clear, concise language.
                 3. Explain *why* the failure happened (root cause reasoning).
@@ -78,6 +78,8 @@ Extract_Alert_Information_Prompt = ChatPromptTemplate.from_messages([
                 - **Next Recommended Actions**
 
                 Each of the points in ouput format should not contain more than 50 words.
+
+                {format_instructions}          
             """
         ),
         (
