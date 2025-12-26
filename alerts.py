@@ -1,4 +1,4 @@
-DataDog_sample_alert = {
+DataDog_sample_alerts = [{
   "ddsource": "azure.synapse",
   "event_type": "synapse_pipeline_failure",
   "alert_id": "9876543210",
@@ -44,3 +44,4 @@ DataDog_sample_alert = {
   "host": "azure-synapse",
   "message": "Synapse Pipeline **ingest_customer_data** has failed in workspace **prod-synapse-ws**. \nError: SQL pool timeout in activity CopyCustomersToSQL."
 }
+]

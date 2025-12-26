@@ -11,8 +11,8 @@ builder = StateGraph(DispatcherState)
 builder.add_node("classify", classify)
 builder.add_node("summarize", summarize)
 builder.add_node("validate", validate_requirements)
+builder.add_node("assign", get_engineer_with_lowest_load)
 builder.add_node("create_ticket", create_ticket)
-# builder.add_node("assign", get_engineer_with_lowest_load)
 builder.add_node("generate_response", auto_response)
 # builder.add_node("send_email", send_email)
 # builder.set_entry_point("classify")
@@ -25,11 +25,12 @@ builder.add_conditional_edges(
     route_by_classification,
     {
         "INCIDENT": "summarize",
-        "VALIDATE": "validate",
-        "RESPONSE_USER": "generate_response"
+        "REQUEST": "validate",
+        "NEED_RESPONSE": "generate_response"
     }
 )
-#builder.add_edge("summarize", "create_ticket")
+builder.add_edge("summarize", "assign")
+builder.add_edge("assign", "create_ticket")
 # builder.add_edge("generate_response", "send_email")
 # builder.add_edge("Summarize_Emails", "create_ticket")
 # builder.add_edge("Summarize_Incident", "create_ticket")

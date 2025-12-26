@@ -1,5 +1,8 @@
 import os
 import json
+from datetime import datetime,timezone
+import uuid
+import pandas as pd
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
@@ -12,6 +15,7 @@ from typing import Optional, List
 from .node_prompts import Email_Classification_prompt,Summarize_Alert_Incident
 from .parsing_models import ClassifyEmailOutput,Classification,AlertIncidentSummary
 from .state import DispatcherState
+
 
 load_dotenv()
 
@@ -57,6 +61,21 @@ def classify(state: DispatcherState):
     return state
 
 
+
+
+
+
+def route_by_classification(state: DispatcherState) -> str: 
+    if state['classification']['category'] in ('INCIDENT'):
+        return "INCIDENT"
+    if state['classification']['category'] in ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST'):
+        return "REQUEST"
+    elif state['classification']['category'] in ('QUERY','FOLLOW_UP','QUESTION'):
+        return "NEED_RESPONSE"
+    else:
+        return "DEFAULT"
+
+
 def Summarize_Alerts(state : DispatcherState,
                     prompt = [Summarize_Alert_Incident],
                     outputparser = AlertIncidentSummary,
@@ -92,28 +111,99 @@ def summarize(state: DispatcherState):
 
     return abc
 
+def get_engineer_with_lowest_load(state: DispatcherState) -> dict:
+    print(state)
+    return state
 
 
-def route_by_classification(state: DispatcherState) -> str: 
-    if state['classification']['category'] in ('INCIDENT'):
-        return "INCIDENT"
-    if state['classification']['category'] in ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST'):
-        return "VALIDATE"
-    elif state['classification']['category'] in ('QUERY','FOLLOW_UP','QUESTION'):
-        return "RESPONSE_USER"
-    else:
-        return "DEFAULT"
+def format_raw_incident_for_ticket(raw_incident: dict) -> str:
+    lines = []
+    lines.append("Incident Title:")
+    lines.append(raw_incident.get("Title", "N/A"))
+    lines.append("")
+    lines.append("Incident Description:")
+    lines.append(raw_incident.get("Body", "N/A"))
+    return "\n".join(lines)
+
+def format_summary_for_ticket(json_str: str) -> str:
+    data = json.loads(json_str)
+
+    output = []
+    output.append(f"Summary:\n{data.get('summary')}\n")
+    output.append(f"Root Cause:\n{data.get('root_cause_explanation')}\n")
+
+    output.append("Possible Solutions:")
+    for i, sol in enumerate(data.get("possible_solutions", []), 1):
+        output.append(f"  {i}. {sol}")
+
+    output.append("\nNext Recommended Actions:")
+    for i, act in enumerate(data.get("next_recommended_actions", []), 1):
+        output.append(f"  {i}. {act}")
+
+    return "\n".join(output)
+
+ #Agentic tool to create a ticket and persist it as a row in Excel.
+def create_ticket(state: DispatcherState) -> dict:
+      
+    excel_path = "tickets.xlsx"
     
+    # Generate ticket metadata 
+    ticket_id = f"TCK-{uuid.uuid4().hex[:8].upper()}"
+    created_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+    # Extract from agent state
+    raw_incident = state.get("raw_input", {})
+    classification = state.get("classification", {})
+    
+    severity = classification.get("severity")
+    sla_mapping = {
+        "P1": 4,
+        "P2": 8,
+        "P3": 24
+    }
+
+    ticket_row = {
+        "ticket_id": ticket_id,
+        "created_at": created_at,
+        "source": state.get("source"),
+        "category": classification.get("category"),
+        "sub_category": classification.get("sub_category"),
+        "severity": severity,
+        "raw_incident": format_raw_incident_for_ticket(raw_incident),
+        "AI_Incident_summary": format_summary_for_ticket(state.get("summary")),
+        "assigned_engineer": state.get("assigned_to"),
+        "next_action": state.get("next_action"),
+        "sla_hours": sla_mapping.get(severity),
+        "status": "OPEN",
+        "Engineer_Updates" : "",
+        "closing_time" : ""
+    }
+
+
+    # --- Persist to Excel ---
+    if os.path.exists(excel_path):
+        df = pd.read_excel(excel_path)
+        df = pd.concat([df, pd.DataFrame([ticket_row])], ignore_index=True)
+    else:
+        df = pd.DataFrame([ticket_row])
+
+    df.to_excel(excel_path, index=False)
+
+    # --- Update state with ticket_id ---
+    state["ticket_id"] = ticket_id
+
+    return state
+
+
 def validate_requirements():
     ##If we have a ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST') : This function should check all the required data for each 
     # and ask the user to provide the information if they are insufficient
     pass
 
-def get_engineer_with_lowest_load():
-    pass
 
-def create_ticket():
-    pass
+
+
 
 def auto_response():
     pass
