@@ -8,8 +8,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from agent.workflow import dispatcher_graph
-# from agent.tools import classify_email
-# from agent.workflow_tools import intent_classification
+from agent.ticket_creator_workflow import TicketCreatorGraph
 import psycopg2
 
 
@@ -85,13 +84,8 @@ async def create_item(alert: DataDogAlert):
         "next_action": "",
         "extracted_entities" : "",
         "status": "received"
-    }
-    
-    return dispatcher_graph.invoke(initial_state)
-    # return {
-    #     "message": "Item created successfully",
-    #     "data": alert.event
-    # }
+    }    
+    return TicketCreatorGraph().run(initial_state)
 
 # @app.post("/Sifflet_Monitor")
 # async def create_item(alert: DataDogAlert):

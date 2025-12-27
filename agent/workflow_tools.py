@@ -62,9 +62,6 @@ def classify(state: DispatcherState):
 
 
 
-
-
-
 def route_by_classification(state: DispatcherState) -> str: 
     if state['classification']['category'] in ('INCIDENT'):
         return "INCIDENT"
@@ -173,7 +170,6 @@ def create_ticket(state: DispatcherState) -> dict:
         "raw_incident": format_raw_incident_for_ticket(raw_incident),
         "AI_Incident_summary": format_summary_for_ticket(state.get("summary")),
         "assigned_engineer": state.get("assigned_to"),
-        "next_action": state.get("next_action"),
         "sla_hours": sla_mapping.get(severity),
         "status": "OPEN",
         "Engineer_Updates" : "",
