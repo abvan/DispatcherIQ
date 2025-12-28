@@ -7,8 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from agent.workflow import dispatcher_graph
-from agent.ticket_creator_workflow import TicketCreatorGraph
+from agents.super_agent.super_agent import dispatcher_graph
 import psycopg2
 
 
@@ -47,8 +46,6 @@ class Item(BaseModel):
     in_stock: bool = False
     latest : str
 
-#class tagsDetails(BaseModel):
-
 # Request body model
 class DataDogAlert(BaseModel):
     ddsource : str
@@ -61,9 +58,30 @@ class DataDogAlert(BaseModel):
 class EmailAlert(BaseModel):
     Subject : str
     Body : str
+    thread_id : str
 
 
 ##------------------------ POST endpoints(alerts Monitor (Webhooks))----------------------------------##
+@app.post("/Email_Monitor")
+async def create_item(alert: EmailAlert):
+    
+    initial_state = {
+        "raw_input": {
+            "Title": alert.Subject,
+            "Body": alert.Body
+        },
+        "source": "Email",
+        "classification": None,
+        "severity": None,
+        "assigned_to": None,
+        "next_action":None,
+        "extracted_entities" : None,
+        "status": "received"
+    }
+
+    return dispatcher_graph.invoke(initial_state)
+
+
 @app.post("/Datadog_Monitor")
 async def create_item(alert: DataDogAlert):
     
@@ -95,24 +113,7 @@ async def create_item(alert: DataDogAlert):
 #         "data": alert
 #     }
 
-@app.post("/Email_Monitor")
-async def create_item(alert: EmailAlert):
-    
-    initial_state = {
-        "raw_input": {
-            "Title": alert.Subject,
-            "Body": alert.Body
-        },
-        "source": "Email",
-        "classification": None,
-        "severity": None,
-        "assigned_to": None,
-        "next_action":None,
-        "extracted_entities" : None,
-        "status": "received"
-    }
 
-    return dispatcher_graph.invoke(initial_state)
 
     #email_action = intent_classification(email_subject = alert.Subject,email_body=alert.Body)
     return {
