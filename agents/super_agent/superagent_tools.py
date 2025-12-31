@@ -13,7 +13,7 @@ from ..ticket_creator_agent.ticket_creator import TicketCreatorGraph
 def email_classification(state: DispatcherState, prompt = Email_Classification_prompt, outputparser = Email_Classification, llm = ChatGroq_Model ) -> dict :  
     #"""Classifies an email for Operations dispatching."""    
     email_subject = state['raw_input']['Title'] 
-    email_body = state['raw_input']['Title']
+    email_body = state['raw_input']['Body']
     parser = PydanticOutputParser(pydantic_object=outputparser)    
     chain = (prompt | llm | parser)
     emailClassification = chain.invoke({
@@ -22,6 +22,7 @@ def email_classification(state: DispatcherState, prompt = Email_Classification_p
             "format_instructions": parser.get_format_instructions()
         })
     state['classification'] = emailClassification
+    print(state)
     return state
 
 # state = DispatcherState(
@@ -60,7 +61,10 @@ def create_ticket(state: DispatcherState) -> dict:
         "source":"Email",
         "classification":state['classification']
     }
+    print(initial_state)
     response_state =  TicketCreatorGraph().run(initial_state)
     return response_state
+
+
 
 #print(create_ticket(state))

@@ -45,6 +45,9 @@ def Summarize_Emails(state : TicektCreatorState,
                      prompt = Summarize_Alert_Incident, 
                      outputparser = ClassifyEmailOutput,
                      llm = ChatGroq_Model) -> dict :
+    ## Should read the previous mail chain and Summarization if exists , 
+    ## then summarize the alert and give the possible solutions
+
     
     pass
 

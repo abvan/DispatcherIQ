@@ -158,5 +158,6 @@ def validate_requirements():
 def auto_response():
     pass
 
-def send_email() :
+def send_email(state:DispatcherState) :
+    print('Sending Email')
     pass

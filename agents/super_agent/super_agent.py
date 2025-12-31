@@ -25,12 +25,12 @@ builder.add_conditional_edges(
     {
         "INCIDENT": "TicketCreator_Agent",
         "REQUEST": "validate",
-        "QUERY": "generate_response"
+        "NEED_RESPONSE": "generate_response"
     }
 )
 
 dispatcher_graph = builder.compile()
 
-# mermaid = dispatcher_graph.get_graph().draw_mermaid()
-# print(mermaid)
+mermaid = dispatcher_graph.get_graph().draw_mermaid()
+print(mermaid)
 #display(Image(dispatcher_graph.get_graph().draw_png()))

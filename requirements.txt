@@ -8,3 +8,4 @@ asyncpg
 ipython
 pandas
 openpyxl
+datadog
