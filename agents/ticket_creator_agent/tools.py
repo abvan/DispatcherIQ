@@ -47,23 +47,22 @@ def Summarize_Emails(state : TicektCreatorState,
                      llm = ChatGroq_Model) -> dict :
     ## Should read the previous mail chain and Summarization if exists , 
     ## then summarize the alert and give the possible solutions
-
     
-    pass
+    state['summary'] = 'Summarized Mail in Description'
+    return state
 
 def summarize(state: TicektCreatorState):
     print("Summarizing Incident......")
     if state['source'] == 'Email':
         abc = Summarize_Emails(state)
-        #UpdateState
 
     if state['source'] in ('DataDog','Sifflet'):
         abc = Summarize_Alerts(state)
-        #UpdateState
 
     return abc
 
 def get_engineer_with_lowest_load(state: TicektCreatorState) -> dict:
+    print('Assigning Engineer....')
     return state
 
 
@@ -107,32 +106,30 @@ def create_ticket(state: TicektCreatorState) -> dict:
 
     # Extract from agent state
     raw_incident = state.get("raw_input", {})
-    classification = state.get("classification", {})
+    #classification = state.get("classification", {})
     
-    severity = classification.severity
-    sla_mapping = {
-        "P1": 4,
-        "P2": 8,
-        "P3": 24
-    }
+    #severity = classification.severity
+    # sla_mapping = {
+        # "P1": 4,
+        # "P2": 8,
+        # "P3": 24
+    # }
 
     ticket_row = {
         "ticket_id": ticket_id,
         "created_at": created_at,
         "source": state["source"],
-        "category": classification.category,
-        "sub_category": classification.sub_category,
-        "severity": severity,
+       # "category": classification.category,
+       # "sub_category": classification.sub_category,
+       # "severity": severity,
         "raw_incident": format_raw_incident_for_ticket(raw_incident),
-        "AI_Incident_summary": format_summary_for_ticket(state.get('summary')),
+        "AI_Incident_summary": state.get('summary'),
         "assigned_engineer": state.get("assigned_to"),
-        "sla_hours": sla_mapping.get('severity'),
+        #"sla_hours": sla_mapping.get('severity'),
         "status": "OPEN",
         "Engineer_Updates" : "",
         "closing_time" : ""
     }
-
-
     # --- Persist to Excel ---
     if os.path.exists(excel_path):
         df = pd.read_excel(excel_path)

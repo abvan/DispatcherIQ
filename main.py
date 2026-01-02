@@ -7,7 +7,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from langchain_core.messages import HumanMessage
 from agents.super_agent.super_agent import dispatcher_graph
+from agents.conversational_agent.conversational_agent import chatgraph
 import psycopg2
 
 
@@ -65,21 +67,18 @@ class EmailAlert(BaseModel):
 @app.post("/Email_Monitor")
 async def create_item(alert: EmailAlert):
     
-    initial_state = {
-        "raw_input": {
-            "Title": alert.Subject,
-            "Body": alert.Body
-        },
-        "source": "Email",
-        "classification": None,
-        "severity": None,
-        "assigned_to": None,
-        "next_action":None,
-        "extracted_entities" : None,
-        "status": "received"
+    config = {
+        "configurable": {
+            "thread_id": alert.thread_id #req.thread_id
+        }
+    }
+    
+    state = {
+        "messages": [HumanMessage(content=alert.Body)]
     }
 
-    return dispatcher_graph.invoke(initial_state)
+
+    return chatgraph().invoke(state,config=config)
 
 
 @app.post("/Datadog_Monitor")

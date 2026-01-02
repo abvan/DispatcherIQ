@@ -2,8 +2,7 @@ from typing import TypedDict, List, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 
-from ..workflow_tools import validate_requirements,send_email
-from .superagent_tools import email_classification,route_by_classification,create_ticket
+from .superagent_tools import email_classification,route_by_classification,create_ticket,validate_requirements,generate_response
 from ..state import DispatcherState
 
 #from IPython.display import Image, display
@@ -15,7 +14,7 @@ builder = StateGraph(DispatcherState)
 builder.add_node("classify", email_classification) # classify whether its a ticket creation task, Follow Up , Standard Reqest etc. 
 builder.add_node("TicketCreator_Agent",create_ticket)
 builder.add_node("validate", validate_requirements)
-builder.add_node("generate_response", send_email)
+builder.add_node("Conversation_Agent", generate_response)
 
 ## EDGES
 builder.set_entry_point("classify")
@@ -25,7 +24,7 @@ builder.add_conditional_edges(
     {
         "INCIDENT": "TicketCreator_Agent",
         "REQUEST": "validate",
-        "NEED_RESPONSE": "generate_response"
+        "NEED_RESPONSE": "Conversation_Agent"
     }
 )
 

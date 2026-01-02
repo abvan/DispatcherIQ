@@ -3,11 +3,11 @@ from typing import TypedDict, Optional, List, Dict, Any
 from ..parsing_models import Classification
 
 
-class input_structure(BaseModel):
+class input_structure(BaseModel) :
     Title : str
     Body : str
 
-class TicektCreatorState(TypedDict):
+class TicektCreatorState(TypedDict) :
     ticket_id: Optional[str]
     raw_input: input_structure
     source: Optional[str] # email | alert(datadog,sifflet etc)

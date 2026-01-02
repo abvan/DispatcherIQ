@@ -32,7 +32,6 @@ def email_classification(state: DispatcherState, prompt = Email_Classification_p
 #     }
 # )
 
-
 def route_by_classification(state: DispatcherState) -> str: 
     if state['classification'].category in ('INCIDENT'):
         return "INCIDENT"
@@ -65,6 +64,14 @@ def create_ticket(state: DispatcherState) -> dict:
     response_state =  TicketCreatorGraph().run(initial_state)
     return response_state
 
+#Agentic tool to respond to user query via mail.
+def generate_response(state: DispatcherState) -> dict:    
+    
+    pass
 
 
+def validate_requirements():
+    ##If we have a ('STANDARD_REQUEST','CHANGE_REQUEST','ACCESS_REQUEST') : This function should check all the required data for each 
+    # and ask the user to provide the information if they are insufficient
+    pass
 #print(create_ticket(state))
