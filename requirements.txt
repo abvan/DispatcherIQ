@@ -9,3 +9,4 @@ ipython
 pandas
 openpyxl
 datadog
+langgraph-checkpoint-sqlite

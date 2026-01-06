@@ -13,7 +13,7 @@ from langchain_core.output_parsers import StrOutputParser,PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-from ..node_prompts import Summarize_Alert_Incident
+from .ticket_creator_agent_prompts import Summarize_Alert_Incident
 from ..parsing_models import ClassifyEmailOutput,AlertIncidentSummary
 from .state import TicektCreatorState
 

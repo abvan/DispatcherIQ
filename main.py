@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from langchain_core.messages import HumanMessage
-from agents.super_agent.super_agent import dispatcher_graph
+from agents.ticket_creator_agent.ticket_creator import TicketCreatorGraph
 from agents.conversational_agent.conversational_agent import chatgraph
 import psycopg2
 
@@ -41,12 +41,7 @@ def read_root():
     return {"Hello":"sexy"}
 
 
-# Request body model
-class Item(BaseModel):
-    name: str
-    price: float
-    in_stock: bool = False
-    latest : str
+
 
 # Request body model
 class DataDogAlert(BaseModel):
