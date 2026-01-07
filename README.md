@@ -42,6 +42,7 @@ Ticket Creation (Optional)
       ↓
 Automated Email Response
 
+```
 ---
 
 ## 🛠️ Tech Stack
@@ -52,3 +53,13 @@ Automated Email Response
 4. Python – Core implementation language
 5. LLMs (OpenAI / compatible models) – Reasoning and response generation
 6. Excel / Database (Optional) – Ticket persistence
+
+---
+
+## How It Works
+
+1. Email input is received via a FastAPI endpoint
+2. Dispatcher Agent analyzes and classifies the email
+3. LangGraph routes execution based on classification
+4. Tickets are created when applicable
+5. A final response is generated and returned
