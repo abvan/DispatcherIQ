@@ -41,3 +41,14 @@ Action Routing
 Ticket Creation (Optional)
       ↓
 Automated Email Response
+
+---
+
+## 🛠️ Tech Stack
+
+1. FastAPI – API layer to expose the agent as a service
+2. LangGraph – Orchestrates agent workflows and decision trees
+3. LangChain – Prompt management and LLM interactions
+4. Python – Core implementation language
+5. LLMs (OpenAI / compatible models) – Reasoning and response generation
+6. Excel / Database (Optional) – Ticket persistence
