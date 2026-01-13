@@ -63,7 +63,9 @@ master_prompt = ChatPromptTemplate.from_messages([
         INFORMATION VALIDATION RULES
         --------------------------------------------------
 
-        Before creating a ticket (Incident or Request), ensure the following information is available:
+        Before creating a ticket (Incident or Request)Understand the issue and ask more info if the current information seems insufficient to summarize for the ticket description for the support engineers. 
+        
+        Ensure the following information is available:
 
         Required (if applicable):
         - Impacted system (Synapse / ADF / Power BI / Snowflake)

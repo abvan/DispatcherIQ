@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agentic Dispatcher</title>
+
+  <style>
+    :root {
+      --bg-main: #0F1115;
+      --bg-header: #141720;
+      --bg-chat: #0F1115;
+      --bot-bg: #1C1F2A;
+      --user-bg: #4F46E5;
+      --input-bg: #141720;
+      --border-light: #252838;
+      --text-main: #E5E7EB;
+      --text-muted: #9CA3AF;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+
+      /* ✅ scrollbar belongs to viewport */
+      overflow-y: auto;
+    }
+
+    header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-light);
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .chat-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+
+      /* ❌ no overflow here */
+    }
+
+    #chat {
+      width: 100%;
+      max-width: 820px;
+      padding: 28px 20px 120px;
+      padding-bottom: 140px;
+      /* ❌ remove internal scrolling */
+      overflow: visible;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      line-height: 1.6;
+      font-size: 15px;
+      white-space: pre-wrap;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+
+    .user {
+      background: var(--user-bg);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 6px;
+    }
+
+    .bot {
+      background: var(--bot-bg);
+      color: var(--text-main);
+      margin-right: auto;
+      border-bottom-left-radius: 6px;
+    }
+
+    #input-area {
+      background: var(--bg-header);
+      border-top: 1px solid var(--border-light);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: center;
+
+      /* ✅ pinned to bottom */
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+    }
+
+    .input-wrapper {
+      width: 100%;
+      max-width: 820px;
+      display: flex;
+      gap: 12px;
+    }
+
+    #input {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      background: var(--input-bg);
+      font-size: 15px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    #input::placeholder {
+      color: var(--text-muted);
+    }
+
+    #input:focus {
+      border-color: var(--user-bg);
+      box-shadow: 0 0 0 1px var(--user-bg);
+    }
+
+    button {
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: none;
+      background: var(--user-bg);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* ✅ Optional: scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #2A2F3A;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>🤖 Agentic Dispatcher</header>
+
+<div class="chat-wrapper">
+  <div id="chat"></div>
+</div>
+
+<div id="input-area">
+  <div class="input-wrapper">
+    <input id="input" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("input");
+
+  let threadId = crypto.randomUUID();
+
+  function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = `message ${sender}`;
+    div.textContent = text;
+    chat.appendChild(div);
+
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth"
+    });
+  }
+
+  function extractBotReply(data) {
+    if (!data || !Array.isArray(data.messages)) {
+      return "⚠️ Invalid response from server";
+    }
+
+    const aiMessages = data.messages.filter(m => m.type === "ai");
+    return aiMessages.length
+      ? aiMessages[aiMessages.length - 1].content
+      : "⚠️ No response from agent";
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    const payload = {
+      Subject: "User Chat",
+      Body: text,
+      thread_id: threadId
+    };
+
+    try {
+      const response = await fetch("http://localhost:8000/Email_Monitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      addMessage(extractBotReply(data), "bot");
+
+    } catch {
+      addMessage("❌ Failed to reach Agentic Dispatcher", "bot");
+    }
+  }
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  window.sendMessage = sendMessage;
+});
+</script>
+
+</body>
+</html>

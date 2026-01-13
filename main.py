@@ -6,6 +6,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from contextlib import asynccontextmanager
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from langchain_core.messages import HumanMessage
 from agents.ticket_creator_agent.ticket_creator import TicketCreatorGraph
@@ -35,6 +37,13 @@ import psycopg2
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow all origins (dev only)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
