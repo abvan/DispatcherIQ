@@ -1,0 +1,18 @@
+default_provider: chatgroq
+
+providers:
+  openai:
+    model: gpt-4o-mini
+    temperature: 0.7
+
+  anthropic:
+    model: claude-3-sonnet
+    temperature: 0.5
+
+  huggingface:
+    model: mistralai/Mistral-7B-Instruct
+    temperature: 0.6
+
+  chatgroq:
+    model: meta-llama/llama-4-scout-17b-16e-instruct
+    temperature: 0.1
