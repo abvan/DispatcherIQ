@@ -35,10 +35,10 @@ def chatgraph():
         tools_condition
     )
     builder.add_edge("tools","tool_calling_llm")
-    builder.add_edge(END,"tool_calling_llm")
+    builder.add_edge("tool_calling_llm",END)
 
     # conn = sqlite3.connect('langgraphagent.db',check_same_thread=False)
     # memory = SqliteSaver(conn)
 
-    # ## compile the graph
-    # return builder.compile() #checkpointer=memory
+    ## compile the graph
+    return builder.compile() #checkpointer=memory
